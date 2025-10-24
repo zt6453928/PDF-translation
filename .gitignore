@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+
+# Virtual envs
+.venv/
+venv/
+ENV/
+
+# IDEs / Editors
+.idea/
+.vscode/
+
+# MacOS
+.DS_Store
+
+# Node / Front-end cache
+node_modules/
+
+# Flask / temp
+instance/
+*.log
+
+# Byte-compiled / cache
+*.cache/
+

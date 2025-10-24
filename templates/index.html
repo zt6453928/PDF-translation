@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF翻译器</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- 顶部工具栏 -->
+        <div class="top-toolbar">
+            <h1>📄 PDF翻译器</h1>
+            <div class="toolbar-actions">
+                <input type="file" id="pdfFile" accept=".pdf" style="display: none;">
+                <button id="uploadBtn" class="toolbar-btn" title="选择PDF">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <span>选择PDF</span>
+                </button>
+                <button id="translateBtn" class="toolbar-btn toolbar-btn-primary" disabled title="开始翻译">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"></path>
+                    </svg>
+                    <span>开始翻译</span>
+                </button>
+                <button id="menuBtn" class="icon-btn" title="设置">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                        <!-- Feather icons: settings -->
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82a2 2 0 1 1-2.83 2.83a1.65 1.65 0 0 0-1.82.33a2 2 0 1 1-3.4 0a1.65 1.65 0 0 0-1.82-.33a2 2 0 1 1-2.83-2.83a1.65 1.65 0 0 0 .33-1.82a2 2 0 1 1 0-3.4a1.65 1.65 0 0 0-.33-1.82a2 2 0 1 1 2.83-2.83a1.65 1.65 0 0 0 1.82-.33a2 2 0 1 1 3.4 0a1.65 1.65 0 0 0 1.82.33a2 2 0 1 1 2.83 2.83a1.65 1.65 0 0 0-.33 1.82a2 2 0 1 1 0 3.4z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- 侧边菜单 -->
+        <div class="side-menu" id="sideMenu">
+            <div class="menu-header">
+                <h3>设置</h3>
+                <button id="closeMenuBtn" class="close-btn">✕</button>
+            </div>
+
+            <div class="menu-content">
+                <!-- API配置 -->
+                <div class="menu-section">
+                    <h4>翻译服务</h4>
+                    <select id="apiType" class="menu-select">
+                        <option value="deeplx">DeepLX</option>
+                        <option value="aliyun">阿里云 (通义千问)</option>
+                    </select>
+                </div>
+
+                <div class="menu-section" id="deeplxConfig">
+                    <h4>DeepLX API</h4>
+                    <input type="text" id="deeplxUrl" class="menu-input"
+                           placeholder="https://api.deeplx.org/YOUR_KEY/translate" />
+                </div>
+
+                <div class="menu-section" id="aliyunConfig" style="display: none;">
+                    <h4>阿里云配置</h4>
+                    <input type="text" id="aliyunKey" class="menu-input"
+                           placeholder="API Key: sk-xxxxxxxx" />
+                    <input type="text" id="aliyunModel" class="menu-input"
+                           placeholder="模型: qwen-plus"
+                           title="常用: qwen-max, qwen-plus, qwen-turbo" />
+                </div>
+
+                <button id="saveApiBtn" class="menu-btn">保存配置</button>
+
+                <!-- 语言设置 -->
+                <div class="menu-section">
+                    <h4>源语言</h4>
+                    <select id="sourceLang" class="menu-select">
+                        <option value="auto">自动检测</option>
+                        <option value="EN">英语</option>
+                        <option value="ZH">中文</option>
+                        <option value="JA">日语</option>
+                        <option value="KO">韩语</option>
+                        <option value="FR">法语</option>
+                        <option value="DE">德语</option>
+                        <option value="ES">西班牙语</option>
+                        <option value="RU">俄语</option>
+                    </select>
+                </div>
+
+                <div class="menu-section">
+                    <h4>目标语言</h4>
+                    <select id="targetLang" class="menu-select">
+                        <option value="ZH">中文</option>
+                        <option value="EN">英语</option>
+                        <option value="JA">日语</option>
+                        <option value="KO">韩语</option>
+                        <option value="FR">法语</option>
+                        <option value="DE">德语</option>
+                        <option value="ES">西班牙语</option>
+                        <option value="RU">俄语</option>
+                    </select>
+                </div>
+
+                <!-- 导出选项 -->
+                <div class="menu-section" id="exportSection" style="display: none;">
+                    <h4>导出译文</h4>
+                    <button id="menuCopyBtn" class="menu-btn-small">📋 复制</button>
+                    <button id="menuDownloadTxtBtn" class="menu-btn-small">📄 TXT</button>
+                    <button id="menuDownloadPdfBtn" class="menu-btn-small">📕 PDF</button>
+                </div>
+            </div>
+        </div>
+
+
+
+        <div class="progress-bar" id="progressBar" style="display: none;">
+            <div class="progress-fill" id="progressFill"></div>
+            <span class="progress-text" id="progressText">0%</span>
+        </div>
+
+        <div class="content-wrapper">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>PDF原文</h2>
+                    <div class="page-navigation" id="pdfNavigation" style="display: none;">
+                        <button class="nav-btn" id="pdfPrevBtn">◀</button>
+                        <span class="page-indicator">
+                            <input type="number" id="pdfPageInput" min="1" value="1" />
+                            <span>/</span>
+                            <span id="pdfTotalPages">0</span>
+                        </span>
+                        <button class="nav-btn" id="pdfNextBtn">▶</button>
+                    </div>
+                    <div class="zoom-controls" id="zoomControls" style="display: none;">
+                        <div class="zoom-group" id="pageZoomGroup" title="页面整体缩放（文字、布局、图片）">
+                            <label for="pageZoomRange">页面缩放</label>
+                            <input type="range" id="pageZoomRange" min="50" max="200" step="10" value="100" />
+                            <span id="pageZoomLabel">100%</span>
+                        </div>
+                        <div class="zoom-group" id="imageZoomGroup" title="仅放大页面中的图片，不影响文字与布局">
+                            <label for="imageZoomRange">图片缩放</label>
+                            <input type="range" id="imageZoomRange" min="100" max="300" step="10" value="100" />
+                            <span id="imageZoomLabel">100%</span>
+                        </div>
+                    </div>
+                    <span class="page-info" id="originalPageInfo"></span>
+                </div>
+                <div class="panel-content pdf-viewer" id="originalContent">
+                    <div class="placeholder">
+                        <p>请上传PDF文件</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>译文</h2>
+                    <div class="page-navigation" id="translationNavigation" style="display: none;">
+                        <button class="nav-btn" id="transPrevBtn">◀</button>
+                        <span class="page-indicator">
+                            <input type="number" id="transPageInput" min="1" value="1" />
+                            <span>/</span>
+                            <span id="transTotalPages">0</span>
+                        </span>
+                        <button class="nav-btn" id="transNextBtn">▶</button>
+                    </div>
+                    <span class="page-info" id="translatedPageInfo"></span>
+                </div>
+                <div class="panel-content" id="translatedContent">
+                    <div class="placeholder">
+                        <p>翻译结果将显示在这里</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <!-- PDF.js（使用CDN；如需离线，请将文件放到 static/vendor/pdfjs 并调整路径） -->
+    <script>
+        // 动态加载PDF.js（优先本地vendor，其次CDN）
+        (function loadPdfJs() {
+            function addScript(src, onload) {
+                var s = document.createElement('script');
+                s.src = src;
+                s.onload = onload;
+                s.onerror = function() { console.warn('加载失败:', src); };
+                document.body.appendChild(s);
+            }
+            // 版本选用稳定 UMD 构建（2.16.105）；如需升级，可同步修改 workerSrc
+            var localBase = '{{ url_for('static', filename='vendor/pdfjs') }}';
+            var cdnBase = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105';
+            var loaded = false;
+            function onLoaded() { loaded = true; }
+
+            // 尝试本地
+            addScript(localBase + '/pdf.min.js', function() {
+                onLoaded();
+            });
+            // 兜底CDN
+            setTimeout(function() {
+                if (!loaded) {
+                    addScript(cdnBase + '/pdf.min.js', onLoaded);
+                }
+            }, 300);
+
+            // 额外尝试加载SVG渲染支持（部分构建已内置SVGGraphics，这里尽量补齐）
+            setTimeout(function() {
+                if (window.pdfjsLib && pdfjsLib.SVGGraphics) return;
+                // 本地svg
+                addScript(localBase + '/svg.min.js', function(){});
+                // CDN svg
+                setTimeout(function(){
+                    if (!(window.pdfjsLib && pdfjsLib.SVGGraphics)) {
+                        addScript(cdnBase + '/svg.min.js', function(){});
+                    }
+                }, 200);
+            }, 800);
+        })();
+    </script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
