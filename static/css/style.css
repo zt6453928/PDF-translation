@@ -429,6 +429,30 @@ body {
     overflow: hidden;
 }
 
+/* 移动端标签切换（默认隐藏，小屏显示） */
+.mobile-tabs {
+    display: none;
+    gap: 8px;
+    background: rgba(255,255,255,0.95);
+    padding: 8px 10px;
+    border-bottom: 1px solid #e0e0e0;
+}
+.mobile-tab {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid #d0d0d0;
+    background: #fff;
+    color: #333;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.mobile-tab.active {
+    border-color: #667eea;
+    color: #667eea;
+    background: #eef0ff;
+}
+
 .panel {
     background: white;
     overflow: hidden;
@@ -739,4 +763,20 @@ body {
         align-items: flex-start;
         justify-content: center;
     }
+}
+
+/* 极小屏幕：显示标签，仅展示单个面板 */
+@media (max-width: 375px) {
+    .mobile-tabs { display: flex; }
+    .content-wrapper {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr; /* 单面板全屏 */
+    }
+    .divider { display: none; }
+    /* 通过JS切换显示隐藏，这里确保面板填满 */
+    #panelOriginal, #panelTranslated {
+        display: none; /* 初始由JS设置显示的面板会改为flex */
+    }
+    .panel { height: calc(100vh - 56px - 46px); }
+    /* 56px 估算顶部工具栏高度，46px 标签栏高度；若不准确，可再调 */
 }

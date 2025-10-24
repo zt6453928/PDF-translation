@@ -118,8 +118,14 @@
             <span class="progress-text" id="progressText">0%</span>
         </div>
 
+        <!-- 移动端标签切换（<375px可见） -->
+        <div class="mobile-tabs" id="mobileTabs" role="tablist" aria-label="视图切换" style="display:none;">
+            <button class="mobile-tab active" id="tabOriginal" data-target="original" role="tab" aria-selected="true">原文</button>
+            <button class="mobile-tab" id="tabTranslated" data-target="translated" role="tab" aria-selected="false">译文</button>
+        </div>
+
         <div class="content-wrapper">
-            <div class="panel">
+            <div class="panel" id="panelOriginal" data-pane="original">
                 <div class="panel-header">
                     <h2>PDF原文</h2>
                     <div class="page-navigation" id="pdfNavigation" style="display: none;">
@@ -154,7 +160,7 @@
 
             <div class="divider"></div>
 
-            <div class="panel">
+            <div class="panel" id="panelTranslated" data-pane="translated">
                 <div class="panel-header">
                     <h2>译文</h2>
                     <div class="page-navigation" id="translationNavigation" style="display: none;">

@@ -57,6 +57,12 @@ const pdfPrevBtn = document.getElementById('pdfPrevBtn');
 const pdfNextBtn = document.getElementById('pdfNextBtn');
 const transPrevBtn = document.getElementById('transPrevBtn');
 const transNextBtn = document.getElementById('transNextBtn');
+// 移动端标签切换
+const mobileTabs = document.getElementById('mobileTabs');
+const tabOriginal = document.getElementById('tabOriginal');
+const tabTranslated = document.getElementById('tabTranslated');
+const panelOriginal = document.getElementById('panelOriginal');
+const panelTranslated = document.getElementById('panelTranslated');
 const zoomControls = document.getElementById('zoomControls');
 const pageZoomGroup = document.getElementById('pageZoomGroup');
 const imageZoomGroup = document.getElementById('imageZoomGroup');
@@ -86,6 +92,8 @@ window.addEventListener('load', () => {
         }
     }
 
+    // 初始化移动端标签
+    setupMobileTabs();
 });
 
 // 打开/关闭侧边菜单
@@ -247,6 +255,53 @@ document.addEventListener('keydown', (e) => {
         goToPdfPage(totalPages);
     }
 });
+
+// 初始化与事件：移动端标签切换（极小屏幕）
+function setupMobileTabs() {
+    // 根据屏幕宽度决定是否启用标签模式
+    const enableTabs = () => window.matchMedia('(max-width: 375px)').matches;
+    const showPane = (pane) => {
+        const isOriginal = pane === 'original';
+        if (enableTabs()) {
+            if (panelOriginal) panelOriginal.style.display = isOriginal ? 'flex' : 'none';
+            if (panelTranslated) panelTranslated.style.display = isOriginal ? 'none' : 'flex';
+        } else {
+            // 还原为并排/上下布局
+            if (panelOriginal) panelOriginal.style.display = 'flex';
+            if (panelTranslated) panelTranslated.style.display = 'flex';
+        }
+        if (tabOriginal && tabTranslated) {
+            tabOriginal.classList.toggle('active', isOriginal);
+            tabTranslated.classList.toggle('active', !isOriginal);
+            tabOriginal.setAttribute('aria-selected', String(isOriginal));
+            tabTranslated.setAttribute('aria-selected', String(!isOriginal));
+        }
+        // 当切换到译文时，确保译文导航显示正确
+        if (!isOriginal && translatedContent.length > 0) {
+            translationNavigation.style.display = 'flex';
+        }
+    };
+
+    // 默认展示原文
+    showPane('original');
+
+    // 绑定事件
+    if (tabOriginal) tabOriginal.addEventListener('click', () => showPane('original'));
+    if (tabTranslated) tabTranslated.addEventListener('click', () => showPane('translated'));
+
+    // 监听窗口尺寸变化
+    window.addEventListener('resize', () => {
+        showPane(tabOriginal && tabOriginal.classList.contains('active') ? 'original' : 'translated');
+    });
+
+    // 初始根据当前窗口宽度设置标签可见性
+    if (mobileTabs) {
+        mobileTabs.style.display = window.matchMedia('(max-width: 375px)').matches ? 'flex' : 'none';
+        window.addEventListener('resize', () => {
+            mobileTabs.style.display = window.matchMedia('(max-width: 375px)').matches ? 'flex' : 'none';
+        });
+    }
+}
 
 
 
