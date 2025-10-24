@@ -765,8 +765,8 @@ body {
     }
 }
 
-/* 极小屏幕：显示标签，仅展示单个面板 */
-@media (max-width: 375px) {
+/* 极小屏幕：显示标签，仅展示单个面板（提升到 <=414px 覆盖更多设备） */
+@media (max-width: 414px) {
     .mobile-tabs { display: flex; }
     .content-wrapper {
         grid-template-columns: 1fr;

@@ -258,8 +258,8 @@ document.addEventListener('keydown', (e) => {
 
 // 初始化与事件：移动端标签切换（极小屏幕）
 function setupMobileTabs() {
-    // 根据屏幕宽度决定是否启用标签模式
-    const enableTabs = () => window.matchMedia('(max-width: 375px)').matches;
+    // 根据屏幕宽度决定是否启用标签模式（<=414px）
+    const enableTabs = () => window.matchMedia('(max-width: 414px)').matches;
     const showPane = (pane) => {
         const isOriginal = pane === 'original';
         if (enableTabs()) {
@@ -296,11 +296,45 @@ function setupMobileTabs() {
 
     // 初始根据当前窗口宽度设置标签可见性
     if (mobileTabs) {
-        mobileTabs.style.display = window.matchMedia('(max-width: 375px)').matches ? 'flex' : 'none';
+        mobileTabs.style.display = window.matchMedia('(max-width: 414px)').matches ? 'flex' : 'none';
         window.addEventListener('resize', () => {
-            mobileTabs.style.display = window.matchMedia('(max-width: 375px)').matches ? 'flex' : 'none';
+            mobileTabs.style.display = window.matchMedia('(max-width: 414px)').matches ? 'flex' : 'none';
         });
     }
+
+    // 轻扫手势切换标签（仅在标签模式启用时）
+    let touchStartX = 0, touchStartY = 0;
+    const threshold = 50; // 触发切换的最小水平距离
+    const attachSwipe = (el) => {
+        if (!el) return;
+        el.addEventListener('touchstart', (e) => {
+            if (!enableTabs()) return;
+            const t = e.touches && e.touches[0];
+            if (!t) return;
+            touchStartX = t.clientX;
+            touchStartY = t.clientY;
+        }, { passive: true });
+        el.addEventListener('touchend', (e) => {
+            if (!enableTabs()) return;
+            const t = e.changedTouches && e.changedTouches[0];
+            if (!t) return;
+            const dx = t.clientX - touchStartX;
+            const dy = t.clientY - touchStartY;
+            if (Math.abs(dx) > threshold && Math.abs(dx) > Math.abs(dy) + 10) {
+                // 左滑：原文 -> 译文；右滑：译文 -> 原文
+                const originalActive = tabOriginal && tabOriginal.classList.contains('active');
+                if (dx < 0 && originalActive) {
+                    // 左滑，切到译文
+                    tabTranslated && tabTranslated.click();
+                } else if (dx > 0 && !originalActive) {
+                    // 右滑，切到原文
+                    tabOriginal && tabOriginal.click();
+                }
+            }
+        }, { passive: true });
+    };
+    attachSwipe(panelOriginal);
+    attachSwipe(panelTranslated);
 }
 
 
