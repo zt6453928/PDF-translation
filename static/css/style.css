@@ -671,6 +671,7 @@ body {
 @media (max-width: 1024px) {
     .content-wrapper {
         grid-template-columns: 1fr;
+        grid-template-rows: 1fr 3px 1fr;
     }
 
     .divider {
@@ -687,6 +688,9 @@ body {
         text-align: left;
         margin-top: 5px;
     }
+
+    .panel { min-height: 0; }
+    .panel-content { min-height: 0; }
 }
 
 @media (max-width: 768px) {
@@ -700,8 +704,9 @@ body {
     }
 
     .nav-btn {
-        padding: 2px 6px;
-        font-size: 0.8em;
+        padding: 6px 10px;
+        font-size: 0.9em;
+        min-width: 36px;
     }
 
     .toolbar-btn span {
@@ -719,5 +724,19 @@ body {
     .side-menu {
         width: 100%;
         right: -100%;
+    }
+
+    .zoom-controls {
+        flex-wrap: wrap;
+        width: 100%;
+        justify-content: center;
+    }
+    .zoom-group {
+        width: 100%;
+        justify-content: center;
+    }
+    .pdf-svg-container {
+        align-items: flex-start;
+        justify-content: center;
     }
 }
