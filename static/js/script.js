@@ -168,10 +168,12 @@ saveApiBtn.addEventListener('click', () => {
     showToast('API配置已保存', 'success');
 });
 
-// 上传按钮点击
-uploadBtn.addEventListener('click', () => {
-    pdfFileInput.click();
-});
+// 上传按钮点击（如果是label，浏览器会自动触发文件选择，不再二次触发click）
+if (uploadBtn && uploadBtn.tagName !== 'LABEL') {
+    uploadBtn.addEventListener('click', () => {
+        if (pdfFileInput) pdfFileInput.click();
+    });
+}
 
 // 文件上传处理
 pdfFileInput.addEventListener('change', handleFileSelect);
@@ -449,6 +451,8 @@ async function handleFileSelect() {
             console.log('文件ID:', currentFileId);
             console.log('总页数:', totalPages);
 
+            // 在极小屏幕（开启标签模式）下，确保原文面板可见
+            try { ensureOriginalVisibleOnSmallScreens(); } catch (_) {}
             displayPdfPreview(result.file_id);
             initPageNavigation(totalPages);
 
@@ -473,6 +477,8 @@ async function handleFileSelect() {
 // 显示PDF预览
 function displayPdfPreview(fileId) {
     console.log('显示PDF预览（PDF.js），文件ID:', fileId);
+    // 显示加载占位
+    originalContent.innerHTML = '<div class="pdf-svg-container"><div class="placeholder">正在加载预览…</div></div>';
 
     const ensurePdfJs = () => typeof window.pdfjsLib !== 'undefined';
     const waitForPdfJs = (timeoutMs = 4000) => new Promise((resolve, reject) => {
@@ -545,6 +551,18 @@ function displayPdfPreview(fileId) {
         `;
         if (zoomControls) zoomControls.style.display = 'none';
     });
+}
+
+function ensureOriginalVisibleOnSmallScreens() {
+    const isTabs = window.matchMedia('(max-width: 414px)').matches;
+    if (isTabs) {
+        // 切换到原文标签
+        if (typeof setupMobileTabs === 'function') {
+            if (tabOriginal && !tabOriginal.classList.contains('active')) {
+                tabOriginal.click();
+            }
+        }
+    }
 }
 
 // 渲染指定页（PDF.js）
