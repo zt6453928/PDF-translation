@@ -124,12 +124,7 @@
             <button class="mobile-tab" id="tabTranslated" data-target="translated" role="tab" aria-selected="false">译文</button>
         </div>
 
-        <!-- 视图比例滑动条（在非标签模式下用于调整原文/译文占比） -->
-        <div class="split-controls" id="splitControls" aria-label="调整原文与译文显示比例" style="display:none;">
-            <span class="split-label">视图比例</span>
-            <input type="range" id="splitRange" min="20" max="80" step="1" value="50" aria-valuemin="20" aria-valuemax="80" aria-valuenow="50" aria-label="原文比例(%)" />
-            <span class="split-value" id="splitValue">50%</span>
-        </div>
+        
 
         <div class="content-wrapper">
             <div class="panel" id="panelOriginal" data-pane="original">
@@ -165,7 +160,7 @@
                 </div>
             </div>
 
-            <div class="divider"></div>
+            <div class="divider" id="splitHandle" role="separator" aria-label="拖动调整原文与译文大小" tabindex="0"></div>
 
             <div class="panel" id="panelTranslated" data-pane="translated">
                 <div class="panel-header">

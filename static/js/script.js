@@ -63,6 +63,7 @@ const tabOriginal = document.getElementById('tabOriginal');
 const tabTranslated = document.getElementById('tabTranslated');
 const panelOriginal = document.getElementById('panelOriginal');
 const panelTranslated = document.getElementById('panelTranslated');
+const splitHandle = document.getElementById('splitHandle');
 // 视图比例控件
 const splitControls = document.getElementById('splitControls');
 const splitRange = document.getElementById('splitRange');
@@ -98,7 +99,7 @@ window.addEventListener('load', () => {
 
     // 初始化移动端标签
     setupMobileTabs();
-    setupSplitControls();
+    setupSplitHandle();
 });
 
 // 打开/关闭侧边菜单
@@ -344,49 +345,104 @@ function setupMobileTabs() {
     attachSwipe(panelTranslated);
 }
 
-// 视图比例滑动条：调整原文与译文的显示比例
-function setupSplitControls() {
+// 拖拽滑块：在并排或上下布局之间调整尺寸（隐藏于标签模式）
+function setupSplitHandle() {
     const container = document.querySelector('.content-wrapper');
-    if (!container || !splitRange || !splitControls) return;
+    if (!container || !splitHandle) return;
 
-    const isTabs = () => window.matchMedia('(max-width: 414px)').matches; // 单面板模式
-    const isStacked = () => window.matchMedia('(max-width: 1024px)').matches && !isTabs(); // 上下布局
+    const isTabs = () => window.matchMedia('(max-width: 414px)').matches;
+    const isStacked = () => window.matchMedia('(max-width: 1024px)').matches && !isTabs();
 
-    function applySplit(percent) {
-        const p = Math.max(20, Math.min(80, percent));
-        if (splitValue) splitValue.textContent = p + '%';
-        if (isTabs()) {
-            // 标签模式下隐藏控件，清除内联样式
-            splitControls.style.display = 'none';
-            container.style.gridTemplateColumns = '';
-            container.style.gridTemplateRows = '';
-            return;
-        }
-        splitControls.style.display = 'flex';
+    function setByPercent(p) {
+        const pct = Math.max(20, Math.min(80, p));
         if (isStacked()) {
-            container.style.gridTemplateRows = `${p}% 3px ${100 - p}%`;
+            container.style.gridTemplateRows = `${pct}% 10px ${100 - pct}%`;
             container.style.gridTemplateColumns = '1fr';
         } else {
-            container.style.gridTemplateColumns = `${p}% 2px ${100 - p}%`;
+            container.style.gridTemplateColumns = `${pct}% 6px ${100 - pct}%`;
             container.style.gridTemplateRows = '';
         }
     }
 
-    // 初始应用
-    const initial = parseInt(splitRange.value || '50', 10) || 50;
-    applySplit(initial);
+    function computePercent(clientX, clientY) {
+        const rect = container.getBoundingClientRect();
+        if (isStacked()) {
+            const y = clientY - rect.top;
+            const pct = (y / rect.height) * 100;
+            return pct;
+        } else {
+            const x = clientX - rect.left;
+            const pct = (x / rect.width) * 100;
+            return pct;
+        }
+    }
 
-    // 绑定事件
-    splitRange.addEventListener('input', () => {
-        const val = parseInt(splitRange.value || '50', 10) || 50;
-        splitRange.setAttribute('aria-valuenow', String(val));
-        applySplit(val);
+    function startDrag(e, clientX, clientY) {
+        if (isTabs()) return;
+        splitHandle.classList.add('dragging');
+        document.body.style.userSelect = 'none';
+        const onMove = (ev) => {
+            const cX = ev.clientX ?? (ev.touches && ev.touches[0] && ev.touches[0].clientX);
+            const cY = ev.clientY ?? (ev.touches && ev.touches[0] && ev.touches[0].clientY);
+            if (cX == null || cY == null) return;
+            const pct = computePercent(cX, cY);
+            setByPercent(pct);
+        };
+        const end = () => {
+            splitHandle.classList.remove('dragging');
+            document.body.style.userSelect = '';
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', end);
+            document.removeEventListener('touchmove', onMove);
+            document.removeEventListener('touchend', end);
+        };
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', end);
+        document.addEventListener('touchmove', onMove, { passive: false });
+        document.addEventListener('touchend', end);
+        // 初始化一次，避免点击不移动的情况
+        const pct = computePercent(clientX, clientY);
+        setByPercent(pct);
+    }
+
+    // Mouse / touch handlers
+    splitHandle.addEventListener('mousedown', (e) => startDrag(e, e.clientX, e.clientY));
+    splitHandle.addEventListener('touchstart', (e) => {
+        const t = e.touches && e.touches[0];
+        if (!t) return;
+        startDrag(e, t.clientX, t.clientY);
+    }, { passive: true });
+
+    // 键盘无障碍支持：左右/上下调整
+    splitHandle.addEventListener('keydown', (e) => {
+        if (isTabs()) return;
+        const step = 2; // 每次调整2%
+        const current = (() => {
+            const cols = window.getComputedStyle(container).gridTemplateColumns.split(' ');
+            if (!isStacked() && cols[0].includes('%')) return parseFloat(cols[0]);
+            const rows = window.getComputedStyle(container).gridTemplateRows.split(' ');
+            if (isStacked() && rows[0].includes('%')) return parseFloat(rows[0]);
+            return 50;
+        })();
+        if ((!isStacked() && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) ||
+            (isStacked() && (e.key === 'ArrowUp' || e.key === 'ArrowDown'))) {
+            e.preventDefault();
+            const dir = (e.key === 'ArrowLeft' || e.key === 'ArrowUp') ? -1 : 1;
+            setByPercent(current + dir * step);
+        }
     });
 
-    // 窗口尺寸变化时调整模式
+    // 初始化为 50/50
+    setByPercent(50);
+
+    // 视图模式变化时重置
     window.addEventListener('resize', () => {
-        const val = parseInt(splitRange.value || '50', 10) || 50;
-        applySplit(val);
+        if (isTabs()) {
+            container.style.gridTemplateColumns = '';
+            container.style.gridTemplateRows = '';
+        } else {
+            setByPercent(50);
+        }
     });
 }
 

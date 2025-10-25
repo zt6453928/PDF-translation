@@ -434,36 +434,14 @@ body {
 
 .content-wrapper {
     display: grid;
-    grid-template-columns: 1fr 2px 1fr;
+    grid-template-columns: 1fr 6px 1fr;
     gap: 0;
     flex: 1;
     min-height: 0;
     overflow: hidden;
 }
 
-/* 视图比例控制条 */
-.split-controls {
-    display: none;
-    align-items: center;
-    gap: 10px;
-    background: rgba(255, 255, 255, 0.95);
-    padding: 8px 12px;
-    border-bottom: 1px solid #e0e0e0;
-}
-.split-controls .split-label {
-    color: #333;
-    font-weight: 600;
-    font-size: 0.9em;
-}
-.split-controls input[type="range"] {
-    flex: 1;
-}
-.split-controls .split-value {
-    width: 52px;
-    text-align: right;
-    color: #667eea;
-    font-weight: 700;
-}
+/* 视图比例控制条（已移除，改为中间滑块） */
 
 /* 移动端标签切换（默认隐藏，小屏显示） */
 .mobile-tabs {
@@ -688,8 +666,25 @@ body {
 }
 
 .divider {
+    position: relative;
+    width: 6px;
+    background: transparent;
+    cursor: col-resize;
+    touch-action: none;
+}
+.divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     width: 2px;
-    background: #e0e0e0;
+    height: 40px;
+    background: #d0d0d0;
+    border-radius: 2px;
+}
+.divider.dragging::before {
+    background: #667eea;
 }
 
 
@@ -731,12 +726,17 @@ body {
 @media (max-width: 1024px) {
     .content-wrapper {
         grid-template-columns: 1fr;
-        grid-template-rows: 1fr 3px 1fr;
+        grid-template-rows: 1fr 10px 1fr;
     }
 
     .divider {
-        height: 3px;
+        height: 10px;
         width: 100%;
+        cursor: row-resize;
+    }
+    .divider::before {
+        width: 60px;
+        height: 4px;
     }
 
     .panel-header {
