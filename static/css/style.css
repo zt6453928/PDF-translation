@@ -695,12 +695,31 @@ body {
 @media (max-width: 1024px) {
     .content-wrapper {
         grid-template-columns: 1fr;
-        grid-template-rows: 1fr 3px 1fr;
+        grid-template-rows: 1fr 10px 1fr;
     }
 
     .divider {
-        height: 3px;
+        height: 10px;
         width: 100%;
+        background: transparent;
+        position: relative;
+        cursor: row-resize;
+        touch-action: none;
+    }
+    .divider::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 60px;
+        height: 4px;
+        border-radius: 3px;
+        background: #c8c8c8;
+        box-shadow: 0 1px 0 rgba(0,0,0,0.05);
+    }
+    .divider.dragging::before {
+        background: #667eea;
     }
 
     .panel-header {
