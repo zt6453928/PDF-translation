@@ -63,6 +63,10 @@ const tabOriginal = document.getElementById('tabOriginal');
 const tabTranslated = document.getElementById('tabTranslated');
 const panelOriginal = document.getElementById('panelOriginal');
 const panelTranslated = document.getElementById('panelTranslated');
+// 视图比例控件
+const splitControls = document.getElementById('splitControls');
+const splitRange = document.getElementById('splitRange');
+const splitValue = document.getElementById('splitValue');
 const zoomControls = document.getElementById('zoomControls');
 const pageZoomGroup = document.getElementById('pageZoomGroup');
 const imageZoomGroup = document.getElementById('imageZoomGroup');
@@ -94,6 +98,7 @@ window.addEventListener('load', () => {
 
     // 初始化移动端标签
     setupMobileTabs();
+    setupSplitControls();
 });
 
 // 打开/关闭侧边菜单
@@ -337,6 +342,52 @@ function setupMobileTabs() {
     };
     attachSwipe(panelOriginal);
     attachSwipe(panelTranslated);
+}
+
+// 视图比例滑动条：调整原文与译文的显示比例
+function setupSplitControls() {
+    const container = document.querySelector('.content-wrapper');
+    if (!container || !splitRange || !splitControls) return;
+
+    const isTabs = () => window.matchMedia('(max-width: 414px)').matches; // 单面板模式
+    const isStacked = () => window.matchMedia('(max-width: 1024px)').matches && !isTabs(); // 上下布局
+
+    function applySplit(percent) {
+        const p = Math.max(20, Math.min(80, percent));
+        if (splitValue) splitValue.textContent = p + '%';
+        if (isTabs()) {
+            // 标签模式下隐藏控件，清除内联样式
+            splitControls.style.display = 'none';
+            container.style.gridTemplateColumns = '';
+            container.style.gridTemplateRows = '';
+            return;
+        }
+        splitControls.style.display = 'flex';
+        if (isStacked()) {
+            container.style.gridTemplateRows = `${p}% 3px ${100 - p}%`;
+            container.style.gridTemplateColumns = '1fr';
+        } else {
+            container.style.gridTemplateColumns = `${p}% 2px ${100 - p}%`;
+            container.style.gridTemplateRows = '';
+        }
+    }
+
+    // 初始应用
+    const initial = parseInt(splitRange.value || '50', 10) || 50;
+    applySplit(initial);
+
+    // 绑定事件
+    splitRange.addEventListener('input', () => {
+        const val = parseInt(splitRange.value || '50', 10) || 50;
+        splitRange.setAttribute('aria-valuenow', String(val));
+        applySplit(val);
+    });
+
+    // 窗口尺寸变化时调整模式
+    window.addEventListener('resize', () => {
+        const val = parseInt(splitRange.value || '50', 10) || 50;
+        applySplit(val);
+    });
 }
 
 

@@ -118,10 +118,17 @@
             <span class="progress-text" id="progressText">0%</span>
         </div>
 
-        <!-- 移动端标签切换（<375px可见） -->
+        <!-- 移动端标签切换（<=414px可见） -->
         <div class="mobile-tabs" id="mobileTabs" role="tablist" aria-label="视图切换" style="display:none;">
             <button class="mobile-tab active" id="tabOriginal" data-target="original" role="tab" aria-selected="true">原文</button>
             <button class="mobile-tab" id="tabTranslated" data-target="translated" role="tab" aria-selected="false">译文</button>
+        </div>
+
+        <!-- 视图比例滑动条（在非标签模式下用于调整原文/译文占比） -->
+        <div class="split-controls" id="splitControls" aria-label="调整原文与译文显示比例" style="display:none;">
+            <span class="split-label">视图比例</span>
+            <input type="range" id="splitRange" min="20" max="80" step="1" value="50" aria-valuemin="20" aria-valuemax="80" aria-valuenow="50" aria-label="原文比例(%)" />
+            <span class="split-value" id="splitValue">50%</span>
         </div>
 
         <div class="content-wrapper">
