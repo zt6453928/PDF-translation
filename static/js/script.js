@@ -530,8 +530,18 @@ function displayPdfPreview(fileId) {
     }).catch(() => {
         // 兜底：保持旧的iframe预览
         const pdfUrl = `/get_pdf/${fileId}#page=1`;
+        // iOS内置不支持内联PDF时给出提示
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const tip = isIOS ? `<div class="placeholder" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+                <div style="background:rgba(255,255,255,0.9);padding:10px 14px;border-radius:6px;color:#333;font-size:0.9em;">
+                    PDF 预览受限。<a href="${pdfUrl}" target="_blank" style="color:#667eea;pointer-events:auto;">新标签页打开</a>
+                </div>
+            </div>` : '';
         originalContent.innerHTML = `
-            <iframe id="pdfIframe" src="${pdfUrl}" type="application/pdf"></iframe>
+            <div style="position:relative;height:100%;">
+                <iframe id=\"pdfIframe\" src=\"${pdfUrl}\" type=\"application/pdf\" style=\"width:100%;height:100%;border:none;\"></iframe>
+                ${tip}
+            </div>
         `;
         if (zoomControls) zoomControls.style.display = 'none';
     });

@@ -15,6 +15,18 @@ body {
     flex-direction: column;
 }
 
+/* 隐藏文件选择器但保持可触发（兼容移动端） */
+.visually-hidden-file {
+    position: absolute !important;
+    left: -9999px !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
 .container {
     max-width: 100%;
     margin: 0;
