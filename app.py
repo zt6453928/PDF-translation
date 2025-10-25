@@ -37,6 +37,20 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/config')
+def get_config():
+    """前端配置：提供默认翻译服务和是否存在服务器侧的密钥等信息（不返回密钥本身）"""
+    aliyun_has_key = bool(os.environ.get('ALIYUN_API_KEY'))
+    aliyun_default_model = os.environ.get('ALIYUN_DEFAULT_MODEL', 'qwen-flash')
+    return jsonify({
+        'default_api': 'aliyun',
+        'aliyun': {
+            'has_server_key': aliyun_has_key,
+            'default_model': aliyun_default_model
+        }
+    })
+
+
 @app.route('/upload', methods=['POST'])
 def upload_pdf():
     """处理PDF上传并提取文本"""
@@ -261,8 +275,9 @@ def translate_with_deeplx(text, source_lang, target_lang, data):
 def translate_with_aliyun(text, source_lang, target_lang, data):
     """使用阿里云通义千问API翻译（使用requests直接调用）"""
     try:
-        api_key = data.get('api_key', '')
-        model = data.get('model', 'qwen-plus')
+        # 客户端可传入api_key与model；若未提供，则使用服务端环境变量（更安全）
+        api_key = data.get('api_key') or os.environ.get('ALIYUN_API_KEY', '')
+        model = data.get('model') or os.environ.get('ALIYUN_DEFAULT_MODEL', 'qwen-flash')
 
         if not api_key:
             return jsonify({'error': '请先配置阿里云API Key'}), 400

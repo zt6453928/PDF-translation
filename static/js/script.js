@@ -3,10 +3,14 @@ let pdfContent = null;
 let translatedContent = [];
 let currentFileId = null;
 let apiConfig = {
-    type: 'deeplx',
+    type: 'aliyun',
     deeplxUrl: '',
     aliyunKey: '',
-    aliyunModel: 'qwen-plus'
+    aliyunModel: 'qwen-flash'
+};
+let serverConfig = {
+    default_api: 'aliyun',
+    aliyun: { has_server_key: false, default_model: 'qwen-flash' }
 };
 let totalPages = 0;
 let currentPage = 1;
@@ -78,14 +82,41 @@ const imageZoomLabel = document.getElementById('imageZoomLabel');
 
 // 从localStorage加载API配置
 window.addEventListener('load', () => {
+    // 获取服务端配置（不含任何密钥）
+    fetch('/config')
+        .then(r => r.ok ? r.json() : null)
+        .then(cfg => {
+            if (cfg) {
+                serverConfig = cfg;
+                // 默认翻译服务选择
+                apiConfig.type = cfg.default_api || 'aliyun';
+                apiTypeSelect.value = apiConfig.type;
+                // 默认模型
+                if (!apiConfig.aliyunModel) {
+                    apiConfig.aliyunModel = (cfg.aliyun && cfg.aliyun.default_model) || 'qwen-flash';
+                }
+                if (aliyunModelInput && !aliyunModelInput.value) {
+                    aliyunModelInput.value = apiConfig.aliyunModel;
+                }
+                // 如果服务端存在密钥，给出提示但不暴露密钥
+                if (cfg.aliyun && cfg.aliyun.has_server_key) {
+                    if (aliyunKeyInput && !aliyunKeyInput.value) {
+                        aliyunKeyInput.placeholder = '已配置服务器密钥（可留空使用服务器密钥）';
+                        aliyunKeyInput.classList.add('saved');
+                    }
+                }
+                updateApiConfigDisplay();
+            }
+        })
+        .catch(() => {});
     const savedConfig = localStorage.getItem('translation_api_config');
     if (savedConfig) {
         try {
             apiConfig = JSON.parse(savedConfig);
-            apiTypeSelect.value = apiConfig.type;
+            apiTypeSelect.value = apiConfig.type || 'aliyun';
             deeplxUrlInput.value = apiConfig.deeplxUrl || '';
             aliyunKeyInput.value = apiConfig.aliyunKey || '';
-            aliyunModelInput.value = apiConfig.aliyunModel || 'qwen-plus';
+            aliyunModelInput.value = apiConfig.aliyunModel || 'qwen-flash';
 
             // 显示对应的配置区域
             updateApiConfigDisplay();
@@ -163,7 +194,7 @@ saveApiBtn.addEventListener('click', () => {
         }
 
         apiConfig.aliyunKey = key;
-        apiConfig.aliyunModel = model;
+        apiConfig.aliyunModel = model || serverConfig.aliyun?.default_model || 'qwen-flash';
         aliyunKeyInput.classList.add('saved');
         aliyunModelInput.classList.add('saved');
     }
@@ -790,9 +821,12 @@ translateBtn.addEventListener('click', async () => {
         showToast('请先配置DeepLX API地址', 'error');
         return;
     }
-    if (apiConfig.type === 'aliyun' && !apiConfig.aliyunKey) {
-        showToast('请先配置阿里云API Key', 'error');
-        return;
+    if (apiConfig.type === 'aliyun') {
+        const hasServerKey = !!(serverConfig.aliyun && serverConfig.aliyun.has_server_key);
+        if (!apiConfig.aliyunKey && !hasServerKey) {
+            showToast('请先配置阿里云API Key（或在服务器设置 ALIYUN_API_KEY）', 'error');
+            return;
+        }
     }
 
     translateBtn.disabled = true;
@@ -857,8 +891,9 @@ async function translateText(text) {
     if (apiConfig.type === 'deeplx') {
         payload.api_url = apiConfig.deeplxUrl;
     } else if (apiConfig.type === 'aliyun') {
-        payload.api_key = apiConfig.aliyunKey;
-        payload.model = apiConfig.aliyunModel;
+        // 仅当用户填写了密钥时才下发到后端；否则后端使用环境变量
+        if (apiConfig.aliyunKey) payload.api_key = apiConfig.aliyunKey;
+        payload.model = apiConfig.aliyunModel || (serverConfig.aliyun && serverConfig.aliyun.default_model) || 'qwen-flash';
     }
 
     const response = await fetch('/translate', {
