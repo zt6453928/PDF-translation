@@ -63,7 +63,6 @@ const tabOriginal = document.getElementById('tabOriginal');
 const tabTranslated = document.getElementById('tabTranslated');
 const panelOriginal = document.getElementById('panelOriginal');
 const panelTranslated = document.getElementById('panelTranslated');
-const resizeDivider = document.getElementById('resizeDivider');
 const zoomControls = document.getElementById('zoomControls');
 const pageZoomGroup = document.getElementById('pageZoomGroup');
 const imageZoomGroup = document.getElementById('imageZoomGroup');
@@ -95,7 +94,6 @@ window.addEventListener('load', () => {
 
     // 初始化移动端标签
     setupMobileTabs();
-    setupVerticalSplitter();
 });
 
 // 打开/关闭侧边菜单
@@ -339,80 +337,6 @@ function setupMobileTabs() {
     };
     attachSwipe(panelOriginal);
     attachSwipe(panelTranslated);
-}
-
-// 上下滑杆：在移动端堆叠布局下，拖动分隔条调整原文/译文高度占比
-function setupVerticalSplitter() {
-    const isStacked = () => window.matchMedia('(max-width: 1024px)').matches && !window.matchMedia('(max-width: 414px)').matches;
-    const container = document.querySelector('.content-wrapper');
-    if (!container || !resizeDivider) return;
-
-    let dragging = false;
-    let startY = 0;
-    let startTop = 0;
-    let containerRect = null;
-    const dividerHeight = 10; // 与CSS一致
-
-    const minRatio = 0.2; // 顶部最小占比
-    const maxRatio = 0.8; // 顶部最大占比
-
-    function applyRows(topPx) {
-        const total = container.clientHeight;
-        const clampedTop = Math.max(total * minRatio, Math.min(topPx, total * maxRatio));
-        const bottom = Math.max(0, total - clampedTop - dividerHeight);
-        container.style.gridTemplateRows = `${Math.round(clampedTop)}px ${dividerHeight}px ${Math.round(bottom)}px`;
-    }
-
-    function onMove(clientY) {
-        if (!dragging) return;
-        const offsetY = clientY - containerRect.top;
-        const topPx = offsetY - dividerHeight / 2;
-        applyRows(topPx);
-    }
-
-    function onMouseMove(e) { e.preventDefault(); onMove(e.clientY); }
-    function onTouchMove(e) { if (!e.touches || !e.touches[0]) return; onMove(e.touches[0].clientY); }
-    function endDrag() {
-        dragging = false;
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', endDrag);
-        document.removeEventListener('touchmove', onTouchMove);
-        document.removeEventListener('touchend', endDrag);
-        resizeDivider.classList.remove('dragging');
-        document.body.style.userSelect = '';
-    }
-
-    function beginDrag(clientY) {
-        if (!isStacked()) return;
-        dragging = true;
-        containerRect = container.getBoundingClientRect();
-        startY = clientY;
-        startTop = panelOriginal ? panelOriginal.offsetHeight : 0;
-        resizeDivider.classList.add('dragging');
-        document.body.style.userSelect = 'none';
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', endDrag);
-        document.addEventListener('touchmove', onTouchMove, { passive: false });
-        document.addEventListener('touchend', endDrag);
-    }
-
-    // Pointer events
-    resizeDivider.addEventListener('mousedown', (e) => beginDrag(e.clientY));
-    resizeDivider.addEventListener('touchstart', (e) => {
-        if (!e.touches || !e.touches[0]) return;
-        beginDrag(e.touches[0].clientY);
-    }, { passive: true });
-
-    // 在窗口尺寸变化时，重置为均分
-    window.addEventListener('resize', () => {
-        if (isStacked()) {
-            const total = container.clientHeight;
-            const half = Math.max(total * minRatio, Math.min(total / 2, total * maxRatio));
-            container.style.gridTemplateRows = `${Math.round(half)}px ${dividerHeight}px ${Math.round(total - half - dividerHeight)}px`;
-        } else {
-            container.style.gridTemplateRows = '';
-        }
-    });
 }
 
 
