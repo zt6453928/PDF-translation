@@ -589,20 +589,17 @@ def download_pdf():
         c = canvas.Canvas(buffer, pagesize=A4)
         width, height = A4
 
-        # 注册中文字体（使用系统字体）
+        # 注册中文字体（使用项目中包含的字体）
         try:
-            # macOS 系统字体
-            pdfmetrics.registerFont(TTFont('SimSun', '/System/Library/Fonts/STHeiti Light.ttc'))
-            font_name = 'SimSun'
-        except:
-            try:
-                # 尝试其他常见字体
-                pdfmetrics.registerFont(TTFont('SimSun', '/System/Library/Fonts/PingFang.ttc'))
-                font_name = 'SimSun'
-            except:
-                # 如果都失败，使用默认字体（可能不支持中文）
-                font_name = 'Helvetica'
-                print("[警告] 无法加载中文字体，使用默认字体")
+            # 优先使用项目中包含的思源黑体
+            font_path = os.path.join(os.path.dirname(__file__), 'static', 'fonts', 'SourceHanSans.ttc')
+            pdfmetrics.registerFont(TTFont('SourceHanSans', font_path, subfontIndex=0)) # 使用第一个子字体 (Simplified Chinese)
+            font_name = 'SourceHanSans'
+        except Exception as e:
+            print(f"[错误] 加载思源黑体失败: {e}")
+            # 如果失败，回退到默认字体
+            font_name = 'Helvetica'
+            print("[警告] 无法加载中文字体，使用默认字体")
 
         # 设置字体和大小
         c.setFont(font_name, 12)
