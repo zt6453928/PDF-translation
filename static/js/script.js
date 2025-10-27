@@ -6,11 +6,15 @@ let apiConfig = {
     type: 'aliyun',
     deeplxUrl: '',
     aliyunKey: '',
-    aliyunModel: 'qwen-flash'
+    aliyunModel: 'qwen-flash',
+    openaiBaseUrl: 'https://fanyi.963312.xyz',
+    openaiKey: '',
+    openaiModel: 'gpt-3.5-turbo'
 };
 let serverConfig = {
     default_api: 'aliyun',
-    aliyun: { has_server_key: false, default_model: 'qwen-flash' }
+    aliyun: { has_server_key: false, default_model: 'qwen-flash' },
+    openai: { has_server_key: false, default_model: 'gpt-3.5-turbo', base_url: 'https://fanyi.963312.xyz' }
 };
 let totalPages = 0;
 let currentPage = 1;
@@ -45,9 +49,13 @@ const apiTypeSelect = document.getElementById('apiType');
 const exportSection = document.getElementById('exportSection');
 const deeplxConfig = document.getElementById('deeplxConfig');
 const aliyunConfig = document.getElementById('aliyunConfig');
+const openaiConfig = document.getElementById('openaiConfig');
 const deeplxUrlInput = document.getElementById('deeplxUrl');
 const aliyunKeyInput = document.getElementById('aliyunKey');
 const aliyunModelInput = document.getElementById('aliyunModel');
+const openaiBaseUrlInput = document.getElementById('openaiBaseUrl');
+const openaiKeyInput = document.getElementById('openaiKey');
+const openaiModelInput = document.getElementById('openaiModel');
 const saveApiBtn = document.getElementById('saveApiBtn');
 
 // 页码导航元素
@@ -98,11 +106,30 @@ window.addEventListener('load', () => {
                 if (aliyunModelInput && !aliyunModelInput.value) {
                     aliyunModelInput.value = apiConfig.aliyunModel;
                 }
+                // 默认OpenAI配置
+                if (!apiConfig.openaiModel) {
+                    apiConfig.openaiModel = (cfg.openai && cfg.openai.default_model) || 'gpt-3.5-turbo';
+                }
+                if (!apiConfig.openaiBaseUrl) {
+                    apiConfig.openaiBaseUrl = (cfg.openai && cfg.openai.base_url) || 'https://fanyi.963312.xyz';
+                }
+                if (openaiModelInput && !openaiModelInput.value) {
+                    openaiModelInput.value = apiConfig.openaiModel;
+                }
+                if (openaiBaseUrlInput && !openaiBaseUrlInput.value) {
+                    openaiBaseUrlInput.value = apiConfig.openaiBaseUrl;
+                }
                 // 如果服务端存在密钥，给出提示但不暴露密钥
                 if (cfg.aliyun && cfg.aliyun.has_server_key) {
                     if (aliyunKeyInput && !aliyunKeyInput.value) {
                         aliyunKeyInput.placeholder = '已配置服务器密钥（可留空使用服务器密钥）';
                         aliyunKeyInput.classList.add('saved');
+                    }
+                }
+                if (cfg.openai && cfg.openai.has_server_key) {
+                    if (openaiKeyInput && !openaiKeyInput.value) {
+                        openaiKeyInput.placeholder = '已配置服务器密钥（可留空使用服务器密钥）';
+                        openaiKeyInput.classList.add('saved');
                     }
                 }
                 updateApiConfigDisplay();
@@ -117,12 +144,16 @@ window.addEventListener('load', () => {
             deeplxUrlInput.value = apiConfig.deeplxUrl || '';
             aliyunKeyInput.value = apiConfig.aliyunKey || '';
             aliyunModelInput.value = apiConfig.aliyunModel || 'qwen-flash';
+            openaiBaseUrlInput.value = apiConfig.openaiBaseUrl || 'https://fanyi.963312.xyz';
+            openaiKeyInput.value = apiConfig.openaiKey || '';
+            openaiModelInput.value = apiConfig.openaiModel || 'gpt-3.5-turbo';
 
             // 显示对应的配置区域
             updateApiConfigDisplay();
 
             if (apiConfig.deeplxUrl) deeplxUrlInput.classList.add('saved');
             if (apiConfig.aliyunKey) aliyunKeyInput.classList.add('saved');
+            if (apiConfig.openaiKey) openaiKeyInput.classList.add('saved');
         } catch (e) {
             console.error('加载配置失败', e);
         }
@@ -161,9 +192,15 @@ function updateApiConfigDisplay() {
     if (apiTypeSelect.value === 'deeplx') {
         deeplxConfig.style.display = 'flex';
         aliyunConfig.style.display = 'none';
-    } else {
+        openaiConfig.style.display = 'none';
+    } else if (apiTypeSelect.value === 'aliyun') {
         deeplxConfig.style.display = 'none';
         aliyunConfig.style.display = 'flex';
+        openaiConfig.style.display = 'none';
+    } else if (apiTypeSelect.value === 'openai') {
+        deeplxConfig.style.display = 'none';
+        aliyunConfig.style.display = 'none';
+        openaiConfig.style.display = 'flex';
     }
 }
 
@@ -179,7 +216,7 @@ saveApiBtn.addEventListener('click', () => {
         }
         apiConfig.deeplxUrl = url;
         deeplxUrlInput.classList.add('saved');
-    } else {
+    } else if (apiConfig.type === 'aliyun') {
         const key = aliyunKeyInput.value.trim();
         const model = aliyunModelInput.value.trim();
 
@@ -197,6 +234,32 @@ saveApiBtn.addEventListener('click', () => {
         apiConfig.aliyunModel = model || serverConfig.aliyun?.default_model || 'qwen-flash';
         aliyunKeyInput.classList.add('saved');
         aliyunModelInput.classList.add('saved');
+    } else if (apiConfig.type === 'openai') {
+        const baseUrl = openaiBaseUrlInput.value.trim();
+        const key = openaiKeyInput.value.trim();
+        const model = openaiModelInput.value.trim();
+
+        if (!baseUrl) {
+            showToast('请输入Base URL', 'error');
+            return;
+        }
+
+        if (!key) {
+            showToast('请输入API Key', 'error');
+            return;
+        }
+
+        if (!model) {
+            showToast('请输入模型名称', 'error');
+            return;
+        }
+
+        apiConfig.openaiBaseUrl = baseUrl;
+        apiConfig.openaiKey = key;
+        apiConfig.openaiModel = model || serverConfig.openai?.default_model || 'gpt-3.5-turbo';
+        openaiBaseUrlInput.classList.add('saved');
+        openaiKeyInput.classList.add('saved');
+        openaiModelInput.classList.add('saved');
     }
 
     localStorage.setItem('translation_api_config', JSON.stringify(apiConfig));
@@ -894,6 +957,11 @@ async function translateText(text) {
         // 仅当用户填写了密钥时才下发到后端；否则后端使用环境变量
         if (apiConfig.aliyunKey) payload.api_key = apiConfig.aliyunKey;
         payload.model = apiConfig.aliyunModel || (serverConfig.aliyun && serverConfig.aliyun.default_model) || 'qwen-flash';
+    } else if (apiConfig.type === 'openai') {
+        // 仅当用户填写了密钥时才下发到后端；否则后端使用环境变量
+        if (apiConfig.openaiKey) payload.api_key = apiConfig.openaiKey;
+        payload.model = apiConfig.openaiModel || (serverConfig.openai && serverConfig.openai.default_model) || 'gpt-3.5-turbo';
+        payload.base_url = apiConfig.openaiBaseUrl || (serverConfig.openai && serverConfig.openai.base_url) || 'https://fanyi.963312.xyz';
     }
 
     const response = await fetch('/translate', {

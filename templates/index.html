@@ -51,6 +51,7 @@
                     <select id="apiType" class="menu-select">
                         <option value="deeplx">DeepLX</option>
                         <option value="aliyun">阿里云 (通义千问)</option>
+                        <option value="openai">OpenAI兼容API</option>
                     </select>
                 </div>
 
@@ -67,6 +68,17 @@
                     <input type="text" id="aliyunModel" class="menu-input"
                            placeholder="模型: qwen-flash"
                            title="常用: qwen-flash, qwen-max, qwen-plus, qwen-turbo" />
+                </div>
+
+                <div class="menu-section" id="openaiConfig" style="display: none;">
+                    <h4>OpenAI兼容API配置</h4>
+                    <input type="text" id="openaiBaseUrl" class="menu-input"
+                           placeholder="Base URL: https://fanyi.963312.xyz" />
+                    <input type="text" id="openaiKey" class="menu-input"
+                           placeholder="API Key" />
+                    <input type="text" id="openaiModel" class="menu-input"
+                           placeholder="模型: gpt-3.5-turbo"
+                           title="输入您的模型名称" />
                 </div>
 
                 <button id="saveApiBtn" class="menu-btn">保存配置</button>
