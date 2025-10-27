@@ -4,6 +4,13 @@
     box-sizing: border-box;
 }
 
+/* 移动端触摸优化 */
+html {
+    -webkit-text-size-adjust: 100%; /* 防止iOS文字自动调整 */
+    -ms-text-size-adjust: 100%;
+    touch-action: manipulation; /* 优化触摸响应 */
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
                  'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -13,6 +20,8 @@ body {
     margin: 0;
     display: flex;
     flex-direction: column;
+    overflow-x: hidden; /* 防止水平滚动 */
+    -webkit-overflow-scrolling: touch; /* iOS平滑滚动 */
 }
 
 /* 隐藏文件选择器但保持可触发（兼容移动端） */
@@ -74,12 +83,19 @@ body {
     font-size: 0.95em;
     font-weight: 600;
     color: #667eea;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .toolbar-btn:hover:not(:disabled) {
     background: white;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.toolbar-btn:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .toolbar-btn:disabled {
@@ -115,11 +131,18 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .icon-btn:hover {
     background: rgba(255, 255, 255, 0.3);
     transform: scale(1.05);
+}
+
+.icon-btn:active {
+    transform: scale(0.98);
+    background: rgba(255, 255, 255, 0.35);
 }
 
 .icon-btn svg {
@@ -223,11 +246,18 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     margin-bottom: 15px;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .menu-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.menu-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 .menu-btn-small {
@@ -242,6 +272,8 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     margin-right: 8px;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .menu-btn-small:last-child {
@@ -251,6 +283,10 @@ body {
 .menu-btn-small:hover {
     background: #667eea;
     color: white;
+}
+
+.menu-btn-small:active {
+    transform: scale(0.97);
 }
 
 .menu-section:last-child {
@@ -447,24 +483,38 @@ body {
 .mobile-tabs {
     display: none;
     gap: 8px;
-    background: rgba(255,255,255,0.95);
+    background: rgba(255,255,255,0.98);
     padding: 8px 10px;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 2px solid #e0e0e0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
+
 .mobile-tab {
     flex: 1;
-    padding: 10px 12px;
-    border: 1px solid #d0d0d0;
+    padding: 12px 16px;
+    border: 2px solid #d0d0d0;
     background: #fff;
     color: #333;
-    border-radius: 6px;
+    border-radius: 8px;
     font-weight: 600;
+    font-size: 0.95em;
     cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent; /* 移除iOS点击高亮 */
 }
+
+.mobile-tab:active {
+    transform: scale(0.97);
+    background: #f5f5f5;
+}
+
 .mobile-tab.active {
     border-color: #667eea;
-    color: #667eea;
-    background: #eef0ff;
+    color: #fff;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 .panel {
@@ -511,10 +561,17 @@ body {
     font-size: 0.85em;
     transition: all 0.2s ease;
     min-width: 30px;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .nav-btn:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.3);
+}
+
+.nav-btn:active:not(:disabled) {
+    background: rgba(255, 255, 255, 0.4);
+    transform: scale(0.95);
 }
 
 .nav-btn:disabled {
@@ -701,8 +758,10 @@ body {
     opacity: 0;
     transform: translateY(20px);
     transition: all 0.3s ease;
-    pointer-events: none;
+    font-size: 0.95em;
     z-index: 1000;
+    max-width: calc(100vw - 60px);
+    word-wrap: break-word;
 }
 
 .toast.show {
@@ -733,7 +792,9 @@ body {
         height: 10px;
         width: 100%;
         cursor: row-resize;
+        touch-action: none; /* 优化触摸拖动 */
     }
+    
     .divider::before {
         width: 60px;
         height: 4px;
@@ -741,32 +802,43 @@ body {
 
     .panel-header {
         flex-wrap: wrap;
+        padding: 12px 16px;
+    }
+    
+    .panel-header h2 {
+        font-size: 1.1em;
     }
 
     .page-info {
         width: 100%;
         text-align: left;
         margin-top: 5px;
+        font-size: 0.9em;
     }
 
-    .panel { min-height: 0; }
-    .panel-content { min-height: 0; }
+    .panel { 
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .panel-content { 
+        min-height: 0;
+        padding: 16px;
+    }
 }
 
 @media (max-width: 768px) {
-    .page-navigation {
-        flex-wrap: wrap;
-        justify-content: center;
+    .top-toolbar {
+        padding: 8px 12px;
     }
 
-    .page-indicator input {
-        width: 35px;
+    .top-toolbar h1 {
+        font-size: 1.1em;
     }
 
-    .nav-btn {
-        padding: 6px 10px;
-        font-size: 0.9em;
-        min-width: 36px;
+    .toolbar-actions {
+        gap: 8px;
     }
 
     .toolbar-btn span {
@@ -775,15 +847,52 @@ body {
 
     .toolbar-btn {
         padding: 8px;
+        min-width: 40px;
+        justify-content: center;
     }
 
-    .top-toolbar h1 {
-        font-size: 1.2em;
+    .icon-btn {
+        padding: 8px;
+    }
+
+    .page-navigation {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .page-indicator {
+        font-size: 0.9em;
+    }
+
+    .page-indicator input {
+        width: 35px;
+        padding: 4px;
+    }
+
+    .nav-btn {
+        padding: 6px 10px;
+        font-size: 0.9em;
+        min-width: 36px;
     }
 
     .side-menu {
         width: 100%;
         right: -100%;
+        max-width: 100vw;
+    }
+
+    .menu-content {
+        padding: 16px;
+    }
+
+    .menu-section {
+        margin-bottom: 16px;
+    }
+
+    .menu-input,
+    .menu-select {
+        font-size: 16px; /* 防止iOS自动缩放 */
     }
 
     .zoom-controls {
@@ -799,22 +908,69 @@ body {
         align-items: flex-start;
         justify-content: center;
     }
+    
+    /* 移动端Toast位置优化 */
+    .toast {
+        bottom: 20px;
+        right: 50%;
+        transform: translateX(50%) translateY(20px);
+        left: auto;
+    }
+    
+    .toast.show {
+        transform: translateX(50%) translateY(0);
+    }
 }
 
 /* 极小屏幕：显示标签，仅展示单个面板（提升到 <=414px 覆盖更多设备） */
 @media (max-width: 414px) {
-    .mobile-tabs { display: flex; }
+    .mobile-tabs { 
+        display: flex;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    
     .content-wrapper {
         grid-template-columns: 1fr;
         grid-template-rows: 1fr; /* 单面板全屏 */
     }
+    
     .divider { display: none; }
+    
     /* 标签模式下隐藏视图比例控制条 */
     .split-controls { display: none !important; }
+    
     /* 通过JS切换显示隐藏，这里确保面板填满 */
     #panelOriginal, #panelTranslated {
         display: none; /* 初始由JS设置显示的面板会改为flex */
     }
-    .panel { height: calc(100vh - 56px - 46px); }
-    /* 56px 估算顶部工具栏高度，46px 标签栏高度；若不准确，可再调 */
+    
+    .panel { 
+        height: calc(100vh - 56px - 46px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch; /* iOS平滑滚动 */
+    }
+    
+    .panel-header {
+        padding: 10px 12px;
+        flex-wrap: wrap;
+    }
+    
+    .panel-header h2 {
+        font-size: 1em;
+    }
+    
+    .panel-content {
+        padding: 12px;
+    }
+    
+    /* 优化进度条显示 */
+    .progress-bar {
+        height: 3px;
+    }
+    
+    .progress-text {
+        font-size: 0.8em;
+    }
 }

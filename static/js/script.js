@@ -404,27 +404,52 @@ function setupMobileTabs() {
         });
     }
 
-    // 轻扫手势切换标签（仅在标签模式启用时）
-    let touchStartX = 0, touchStartY = 0;
-    const threshold = 50; // 触发切换的最小水平距离
+    // 轻挠手势切换标签（仅在标签模式启用时）
+    let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
+    const threshold = 60; // 触发切换的最小水平距离
+    const maxSwipeTime = 300; // 最大滑动时间（毫秒）
+    
     const attachSwipe = (el) => {
         if (!el) return;
+        
         el.addEventListener('touchstart', (e) => {
             if (!enableTabs()) return;
             const t = e.touches && e.touches[0];
             if (!t) return;
             touchStartX = t.clientX;
             touchStartY = t.clientY;
+            touchStartTime = Date.now();
         }, { passive: true });
+        
+        el.addEventListener('touchmove', (e) => {
+            if (!enableTabs()) return;
+            const t = e.touches && e.touches[0];
+            if (!t) return;
+            const dx = t.clientX - touchStartX;
+            const dy = t.clientY - touchStartY;
+            
+            // 如果是水平滑动，阻止默认滚动行为
+            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
+                // 不阻止，让用户可以正常滚动
+            }
+        }, { passive: true });
+        
         el.addEventListener('touchend', (e) => {
             if (!enableTabs()) return;
             const t = e.changedTouches && e.changedTouches[0];
             if (!t) return;
+            
             const dx = t.clientX - touchStartX;
             const dy = t.clientY - touchStartY;
-            if (Math.abs(dx) > threshold && Math.abs(dx) > Math.abs(dy) + 10) {
-                // 左滑：原文 -> 译文；右滑：译文 -> 原文
+            const swipeTime = Date.now() - touchStartTime;
+            
+            // 检查是否为有效的水平滑动
+            if (Math.abs(dx) > threshold && 
+                Math.abs(dx) > Math.abs(dy) * 1.5 && 
+                swipeTime < maxSwipeTime) {
+                
                 const originalActive = tabOriginal && tabOriginal.classList.contains('active');
+                
                 if (dx < 0 && originalActive) {
                     // 左滑，切到译文
                     tabTranslated && tabTranslated.click();
@@ -435,6 +460,7 @@ function setupMobileTabs() {
             }
         }, { passive: true });
     };
+    
     attachSwipe(panelOriginal);
     attachSwipe(panelTranslated);
 }
